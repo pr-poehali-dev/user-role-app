@@ -16,8 +16,8 @@ export default function CustomerApp({ onLogout }: Props) {
   const [view, setView] = useState<AppView>("catalog");
   const store = useStore();
 
-  const handleOrder = (customerName: string, items: OrderItem[], comment: string) => {
-    store.addOrder({ customerName, items, comment });
+  const handleOrder = async (customerName: string, items: OrderItem[], comment: string) => {
+    await store.addOrder({ customerName, items, comment });
   };
 
   const renderView = () => {
@@ -41,6 +41,17 @@ export default function CustomerApp({ onLogout }: Props) {
         return null;
     }
   };
+
+  if (store.loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center animate-fade-in">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">Загрузка данных...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Layout

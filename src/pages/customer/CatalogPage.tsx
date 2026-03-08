@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   products: Product[];
-  onSubmitOrder: (customerName: string, items: OrderItem[], comment: string) => void;
+  onSubmitOrder: (customerName: string, items: OrderItem[], comment: string) => Promise<void> | void;
 }
 
 export default function CustomerCatalogPage({ products, onSubmitOrder }: Props) {
@@ -28,7 +28,7 @@ export default function CustomerCatalogPage({ products, onSubmitOrder }: Props) 
     setCart((prev) => ({ ...prev, [id]: Math.max(0, qty) }));
   };
 
-  const handleOrder = () => {
+  const handleOrder = async () => {
     if (!customerName.trim() || cartItems.length === 0) return;
     const items: OrderItem[] = cartItems.map((item) => ({
       productId: item.id,
@@ -37,7 +37,7 @@ export default function CustomerCatalogPage({ products, onSubmitOrder }: Props) 
       unit: item.unit,
       quantity: item.qty,
     }));
-    onSubmitOrder(customerName.trim(), items, comment);
+    await onSubmitOrder(customerName.trim(), items, comment);
     setStep("success");
   };
 
