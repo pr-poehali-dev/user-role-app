@@ -62,6 +62,11 @@ export const api = {
         method: "PUT",
         body: JSON.stringify({ status }),
       }),
+    updateItemsFulfilled: (id: string, items: { productId: string; fulfilled: boolean }[]) =>
+      request<{ ok: boolean }>(`${ORDERS_URL}?id=${encodeURIComponent(id)}`, {
+        method: "PUT",
+        body: JSON.stringify({ items }),
+      }),
     remove: (id: string) =>
       request<{ ok: boolean }>(`${ORDERS_URL}?id=${encodeURIComponent(id)}`, { method: "DELETE" }),
   },

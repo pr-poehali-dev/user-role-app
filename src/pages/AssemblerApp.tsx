@@ -31,7 +31,7 @@ export default function AssemblerApp({ onLogout }: Props) {
           />
         );
       case "orders":
-        return <OrdersPage orders={store.orders} onUpdateStatus={store.updateOrderStatus} onDelete={store.deleteOrder} />;
+        return <OrdersPage orders={store.orders} onUpdateStatus={store.updateOrderStatus} onUpdateItemsFulfilled={store.updateOrderItemsFulfilled} onDelete={store.deleteOrder} />;
       case "stats":
         return <StatsPage orders={store.orders} products={store.products} />;
       case "history":

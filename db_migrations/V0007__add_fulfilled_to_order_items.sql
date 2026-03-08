@@ -1,0 +1,1 @@
+ALTER TABLE t_p82294077_user_role_app.order_items ADD COLUMN IF NOT EXISTS fulfilled boolean NOT NULL DEFAULT false;

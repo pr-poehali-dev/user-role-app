@@ -68,6 +68,22 @@ export function useStore() {
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
   };
 
+  const updateOrderItemsFulfilled = async (id: string, items: { productId: string; fulfilled: boolean }[]) => {
+    await api.orders.updateItemsFulfilled(id, items);
+    setOrders((prev) =>
+      prev.map((o) => {
+        if (o.id !== id) return o;
+        return {
+          ...o,
+          items: o.items.map((item) => {
+            const upd = items.find((i) => i.productId === item.productId);
+            return upd !== undefined ? { ...item, fulfilled: upd.fulfilled } : item;
+          }),
+        };
+      })
+    );
+  };
+
   const deleteOrder = async (id: string) => {
     await api.orders.remove(id);
     setOrders((prev) => prev.filter((o) => o.id !== id));
@@ -87,6 +103,7 @@ export function useStore() {
     deleteProduct,
     addOrder,
     updateOrderStatus,
+    updateOrderItemsFulfilled,
     deleteOrder,
     clearNotification,
     reload: loadAll,

@@ -13,6 +13,7 @@ export interface OrderItem {
   volume: number;
   unit: string;
   quantity: number;
+  fulfilled?: boolean;
 }
 
 export interface Order {

@@ -2,7 +2,7 @@
 API для управления заявками.
 GET /  — список заявок с позициями (query: ?status=new|in_progress|completed)
 POST / — создать заявку {customer_name, comment, items: [{product_id, product_name, volume, unit, quantity}]}
-PUT /  — сменить статус ?id=N {status}
+PUT /  — сменить статус ?id=N {status} или обновить fulfilled по позициям {items: [{productId, fulfilled}]}
 DELETE / — удалить заявку ?id=order_number
 """
 import json
@@ -54,7 +54,7 @@ def handler(event: dict, context) -> dict:
             for row in order_rows:
                 oid = row[0]
                 cur.execute(
-                    f"SELECT product_id, product_name, volume, unit, quantity FROM {SCHEMA}.order_items WHERE order_id=%s",
+                    f"SELECT product_id, product_name, volume, unit, quantity, fulfilled FROM {SCHEMA}.order_items WHERE order_id=%s",
                     (oid,)
                 )
                 items = [
@@ -64,6 +64,7 @@ def handler(event: dict, context) -> dict:
                         "volume": float(ir[2]),
                         "unit": ir[3],
                         "quantity": ir[4],
+                        "fulfilled": bool(ir[5]),
                     }
                     for ir in cur.fetchall()
                 ]
@@ -113,16 +114,43 @@ def handler(event: dict, context) -> dict:
 
         if method == "PUT":
             order_number = params.get("id")
+            if not order_number:
+                return err("Нет id")
+
             new_status = body.get("status")
-            if not order_number or new_status not in ("new", "in_progress", "completed"):
-                return err("Неверные данные")
-            cur.execute(
-                f"UPDATE {SCHEMA}.orders SET status=%s WHERE order_number=%s RETURNING id",
-                (new_status, order_number)
-            )
-            r = cur.fetchone()
-            conn.commit()
-            return ok({"ok": True}) if r else err("Не найдено", 404)
+            items_fulfilled = body.get("items")
+
+            if new_status:
+                if new_status not in ("new", "in_progress", "completed"):
+                    return err("Неверный статус")
+                cur.execute(
+                    f"UPDATE {SCHEMA}.orders SET status=%s WHERE order_number=%s RETURNING id",
+                    (new_status, order_number)
+                )
+                r = cur.fetchone()
+                conn.commit()
+                return ok({"ok": True}) if r else err("Не найдено", 404)
+
+            if items_fulfilled is not None:
+                cur.execute(f"SELECT id FROM {SCHEMA}.orders WHERE order_number=%s", (order_number,))
+                row = cur.fetchone()
+                if not row:
+                    return err("Не найдено", 404)
+                order_id = row[0]
+
+                for item in items_fulfilled:
+                    pid = item.get("productId")
+                    fulfilled = bool(item.get("fulfilled", False))
+                    if pid:
+                        cur.execute(
+                            f"UPDATE {SCHEMA}.order_items SET fulfilled=%s WHERE order_id=%s AND product_id=%s",
+                            (fulfilled, order_id, int(pid))
+                        )
+
+                conn.commit()
+                return ok({"ok": True})
+
+            return err("Нет данных для обновления")
 
         if method == "DELETE":
             order_number = params.get("id")
