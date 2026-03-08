@@ -51,7 +51,7 @@ export default function CustomerOrdersPage({ orders }: Props) {
       </div>
       <div className="space-y-1.5 mt-3">
         {order.items.map((item) => {
-          const total = parseFloat((item.volume * item.quantity).toFixed(4));
+          const total = parseFloat((Number(item.volume) * Number(item.quantity)).toFixed(4));
           return (
             <div key={item.productId} className="flex justify-between text-sm">
               <span className="text-muted-foreground truncate mr-4">{item.productName}</span>

@@ -103,7 +103,7 @@ export default function OrdersPage({ orders, onUpdateStatus, onDelete }: Props) 
                 <div className="px-5 pb-5 border-t border-border animate-fade-in">
                   <div className="mt-4 mb-4 space-y-2">
                     {order.items.map((item) => {
-                      const total = parseFloat((item.volume * item.quantity).toFixed(4));
+                      const total = parseFloat((Number(item.volume) * Number(item.quantity)).toFixed(4));
                       return (
                         <div key={item.productId} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
                           <span className="text-sm">{item.productName}</span>
