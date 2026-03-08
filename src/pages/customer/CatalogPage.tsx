@@ -143,7 +143,7 @@ export default function CustomerCatalogPage({ products, onSubmitOrder }: Props) 
                 <div key={item.id} className="flex justify-between items-center py-2 border-b border-border/50 last:border-0 text-sm">
                   <span>{item.name}</span>
                   <div className="text-muted-foreground">
-                    {item.volume} л × <span className="text-foreground font-medium">{formatQty(item.qty)} шт</span>
+                    <span className="text-foreground font-medium">{formatQty(item.qty)} л</span>
                   </div>
                 </div>
               ))}
@@ -236,13 +236,16 @@ export default function CustomerCatalogPage({ products, onSubmitOrder }: Props) 
                   >
                     <Icon name="Minus" size={13} />
                   </button>
-                  <input
-                    value={qtyInput[product.id] ?? formatQty(cart[product.id] || 0)}
-                    onChange={(e) => handleQtyInput(product.id, e.target.value)}
-                    onBlur={() => handleQtyBlur(product.id)}
-                    className="flex-1 text-center text-sm font-medium bg-transparent border border-border rounded-md py-1 focus:outline-none focus:ring-1 focus:ring-ring"
-                    placeholder="0"
-                  />
+                  <div className="flex-1 flex items-center border border-border rounded-md overflow-hidden">
+                    <input
+                      value={qtyInput[product.id] ?? formatQty(cart[product.id] || 0)}
+                      onChange={(e) => handleQtyInput(product.id, e.target.value)}
+                      onBlur={() => handleQtyBlur(product.id)}
+                      className="flex-1 text-center text-sm font-medium bg-transparent py-1 focus:outline-none w-0 min-w-0"
+                      placeholder="0"
+                    />
+                    <span className="text-xs text-muted-foreground pr-2">л</span>
+                  </div>
                   <button
                     onClick={() => increment(product.id)}
                     className="w-8 h-8 rounded-md bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
