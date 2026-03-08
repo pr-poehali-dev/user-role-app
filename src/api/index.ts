@@ -15,10 +15,25 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
+function normalizeProduct(p: Product): Product {
+  return { ...p, volume: Number(p.volume) };
+}
+
+function normalizeOrder(o: Order): Order {
+  return {
+    ...o,
+    items: o.items.map((item) => ({
+      ...item,
+      volume: Number(item.volume),
+      quantity: Number(item.quantity),
+    })),
+  };
+}
+
 // Products
 export const api = {
   products: {
-    list: () => request<Product[]>(PRODUCTS_URL),
+    list: () => request<Product[]>(PRODUCTS_URL).then((data) => data.map(normalizeProduct)),
     categories: () => request<string[]>(`${PRODUCTS_URL}?categories=1`),
     create: (name: string, volume: number, unit = "л", category = "") =>
       request<Product>(PRODUCTS_URL, {
@@ -36,7 +51,7 @@ export const api = {
 
   orders: {
     list: (status?: string) =>
-      request<Order[]>(status ? `${ORDERS_URL}?status=${status}` : ORDERS_URL),
+      request<Order[]>(status ? `${ORDERS_URL}?status=${status}` : ORDERS_URL).then((data) => data.map(normalizeOrder)),
     create: (customerName: string, items: OrderItem[], comment = "") =>
       request<{ id: string; status: string }>(ORDERS_URL, {
         method: "POST",
