@@ -3,6 +3,7 @@ API для управления заявками.
 GET /  — список заявок с позициями (query: ?status=new|in_progress|completed)
 POST / — создать заявку {customer_name, comment, items: [{product_id, product_name, volume, unit, quantity}]}
 PUT /  — сменить статус ?id=N {status}
+DELETE / — удалить заявку ?id=order_number
 """
 import json
 import os
@@ -12,7 +13,7 @@ SCHEMA = "t_p82294077_user_role_app"
 
 CORS = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
 }
 
@@ -118,6 +119,22 @@ def handler(event: dict, context) -> dict:
             cur.execute(
                 f"UPDATE {SCHEMA}.orders SET status=%s WHERE order_number=%s RETURNING id",
                 (new_status, order_number)
+            )
+            r = cur.fetchone()
+            conn.commit()
+            return ok({"ok": True}) if r else err("Не найдено", 404)
+
+        if method == "DELETE":
+            order_number = params.get("id")
+            if not order_number:
+                return err("Нет id")
+            cur.execute(
+                f"DELETE FROM {SCHEMA}.order_items WHERE order_id = (SELECT id FROM {SCHEMA}.orders WHERE order_number=%s)",
+                (order_number,)
+            )
+            cur.execute(
+                f"DELETE FROM {SCHEMA}.orders WHERE order_number=%s RETURNING id",
+                (order_number,)
             )
             r = cur.fetchone()
             conn.commit()

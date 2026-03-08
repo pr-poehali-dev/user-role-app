@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 interface Props {
   orders: Order[];
   onUpdateStatus: (id: string, status: Order["status"]) => void;
+  onDelete: (id: string) => void;
 }
 
 const STATUS_LABEL: Record<Order["status"], string> = {
@@ -20,15 +21,26 @@ const STATUS_COLOR: Record<Order["status"], string> = {
   completed: "bg-green-100 text-green-700",
 };
 
-export default function OrdersPage({ orders, onUpdateStatus }: Props) {
+export default function OrdersPage({ orders, onUpdateStatus, onDelete }: Props) {
   const [filter, setFilter] = useState<Order["status"] | "all">("all");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const filtered = orders.filter((o) => filter === "all" || o.status === filter);
 
   const formatDate = (iso: string) => {
     const d = new Date(iso);
     return d.toLocaleString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirmDelete === id) {
+      onDelete(id);
+      setConfirmDelete(null);
+      setExpanded(null);
+    } else {
+      setConfirmDelete(id);
+    }
   };
 
   return (
@@ -71,7 +83,7 @@ export default function OrdersPage({ orders, onUpdateStatus }: Props) {
           {filtered.map((order) => (
             <div key={order.id} className="bg-card border border-border rounded-xl overflow-hidden transition-all duration-200">
               <button
-                onClick={() => setExpanded(expanded === order.id ? null : order.id)}
+                onClick={() => { setExpanded(expanded === order.id ? null : order.id); setConfirmDelete(null); }}
                 className="w-full flex items-center justify-between px-5 py-4 hover:bg-secondary/50 transition-colors"
               >
                 <div className="flex items-center gap-4 min-w-0">
@@ -93,11 +105,7 @@ export default function OrdersPage({ orders, onUpdateStatus }: Props) {
                     {order.items.map((item) => (
                       <div key={item.productId} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
                         <span className="text-sm">{item.productName}</span>
-                        <div className="text-right text-sm">
-                          <span className="text-muted-foreground">{item.volume} л</span>
-                          <span className="mx-2 text-border">×</span>
-                          <span className="font-medium">{item.quantity} шт</span>
-                        </div>
+                        <span className="font-medium text-sm">{item.quantity} л</span>
                       </div>
                     ))}
                   </div>
@@ -106,7 +114,7 @@ export default function OrdersPage({ orders, onUpdateStatus }: Props) {
                       {order.comment}
                     </div>
                   )}
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-2 flex-wrap items-center">
                     {order.status === "new" && (
                       <button
                         onClick={() => onUpdateStatus(order.id, "in_progress")}
@@ -129,6 +137,18 @@ export default function OrdersPage({ orders, onUpdateStatus }: Props) {
                         Заявка выполнена
                       </span>
                     )}
+                    <button
+                      onClick={() => handleDelete(order.id)}
+                      className={cn(
+                        "ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
+                        confirmDelete === order.id
+                          ? "bg-red-600 text-white"
+                          : "text-muted-foreground hover:text-red-600 hover:bg-red-50"
+                      )}
+                    >
+                      <Icon name="Trash2" size={13} />
+                      {confirmDelete === order.id ? "Подтвердить удаление" : "Удалить"}
+                    </button>
                   </div>
                 </div>
               )}

@@ -66,8 +66,8 @@ export default function CustomerCatalogPage({ products, onSubmitOrder }: Props) 
     setQty(id, val);
   };
 
-  const increment = (id: string) => setQty(id, (cart[id] || 0) + 1);
-  const decrement = (id: string) => setQty(id, (cart[id] || 0) - 0.5);
+  const increment = (id: string) => setQty(id, (cart[id] || 0) + 0.05);
+  const decrement = (id: string) => setQty(id, (cart[id] || 0) - 0.05);
 
   const handleOrder = async () => {
     if (!customerName.trim() || cartItems.length === 0) return;

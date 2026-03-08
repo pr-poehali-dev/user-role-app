@@ -206,7 +206,6 @@ export default function CatalogPage({ products, onAdd, onUpdate, onDelete }: Pro
                 </div>
               </div>
               <div className="font-medium text-sm leading-tight mb-1">{product.name}</div>
-              <div className="text-muted-foreground text-xs">{product.volume} л</div>
               {product.category && (
                 <div className="mt-2">
                   <span className={cn(

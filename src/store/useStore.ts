@@ -68,6 +68,11 @@ export function useStore() {
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
   };
 
+  const deleteOrder = async (id: string) => {
+    await api.orders.remove(id);
+    setOrders((prev) => prev.filter((o) => o.id !== id));
+  };
+
   const clearNotification = (index: number) => {
     setNotifications((prev) => prev.filter((_, i) => i !== index));
   };
@@ -82,6 +87,7 @@ export function useStore() {
     deleteProduct,
     addOrder,
     updateOrderStatus,
+    deleteOrder,
     clearNotification,
     reload: loadAll,
   };

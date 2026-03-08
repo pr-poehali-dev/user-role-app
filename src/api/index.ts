@@ -47,5 +47,7 @@ export const api = {
         method: "PUT",
         body: JSON.stringify({ status }),
       }),
+    remove: (id: string) =>
+      request<{ ok: boolean }>(`${ORDERS_URL}?id=${encodeURIComponent(id)}`, { method: "DELETE" }),
   },
 };
