@@ -102,12 +102,16 @@ export default function OrdersPage({ orders, onUpdateStatus, onDelete }: Props) 
               {expanded === order.id && (
                 <div className="px-5 pb-5 border-t border-border animate-fade-in">
                   <div className="mt-4 mb-4 space-y-2">
-                    {order.items.map((item) => (
-                      <div key={item.productId} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-                        <span className="text-sm">{item.productName}</span>
-                        <span className="font-medium text-sm">{item.quantity} л</span>
-                      </div>
-                    ))}
+                    {order.items.map((item) => {
+                      const total = +(item.volume * item.quantity).toFixed(4);
+                      const display = total % 1 === 0 ? `${total}` : `${total}`.replace(/\.?0+$/, "");
+                      return (
+                        <div key={item.productId} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+                          <span className="text-sm">{item.productName}</span>
+                          <span className="font-medium text-sm">{display} л</span>
+                        </div>
+                      );
+                    })}
                   </div>
                   {order.comment && (
                     <div className="bg-secondary rounded-md px-3 py-2 text-sm text-muted-foreground mb-4">
