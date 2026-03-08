@@ -84,9 +84,9 @@ def handler(event: dict, context) -> dict:
             if not customer_name or not items:
                 return err("Укажите имя и товары")
 
-            cur.execute(f"SELECT COUNT(*) FROM {SCHEMA}.orders")
-            count = cur.fetchone()[0]
-            order_number = f"ЗАЯ-{str(count + 1).zfill(3)}"
+            cur.execute(f"SELECT COALESCE(MAX(CAST(SPLIT_PART(order_number, '-', 2) AS INTEGER)), 0) FROM {SCHEMA}.orders WHERE order_number LIKE 'ЗАЯ-%'")
+            max_num = cur.fetchone()[0]
+            order_number = f"ЗАЯ-{str(max_num + 1).zfill(3)}"
 
             cur.execute(
                 f"INSERT INTO {SCHEMA}.orders (order_number, customer_name, comment) VALUES (%s, %s, %s) RETURNING id",
