@@ -1,0 +1,1 @@
+ALTER TABLE t_p82294077_user_role_app.order_items ALTER COLUMN quantity TYPE numeric(10,4);

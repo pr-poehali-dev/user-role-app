@@ -104,7 +104,7 @@ def handler(event: dict, context) -> dict:
                         str(item.get("productName", "")),
                         float(item.get("volume", 0)),
                         str(item.get("unit", "л")),
-                        int(item.get("quantity", 1)),
+                        float(item.get("quantity", 1)),
                     )
                 )
             conn.commit()
