@@ -50,12 +50,15 @@ export default function CustomerOrdersPage({ orders }: Props) {
         <span className="text-xs text-muted-foreground">{formatDate(order.createdAt)}</span>
       </div>
       <div className="space-y-1.5 mt-3">
-        {order.items.map((item) => (
-          <div key={item.productId} className="flex justify-between text-sm">
-            <span className="text-muted-foreground truncate mr-4">{item.productName}</span>
-            <span className="shrink-0">{item.volume} л × {item.quantity} шт</span>
-          </div>
-        ))}
+        {order.items.map((item) => {
+          const total = parseFloat((item.volume * item.quantity).toFixed(4));
+          return (
+            <div key={item.productId} className="flex justify-between text-sm">
+              <span className="text-muted-foreground truncate mr-4">{item.productName}</span>
+              <span className="shrink-0">{total} л</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
