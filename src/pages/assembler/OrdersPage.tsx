@@ -94,7 +94,7 @@ export default function OrdersPage({ orders, onUpdateStatus, onDelete }: Props) 
                   </span>
                 </div>
                 <div className="flex items-center gap-3 shrink-0 ml-4">
-                  <span className="text-xs text-muted-foreground hidden sm:block">{formatDate(order.createdAt)}</span>
+                  <span className="text-xs text-muted-foreground">{formatDate(order.createdAt)}</span>
                   <Icon name={expanded === order.id ? "ChevronUp" : "ChevronDown"} size={16} className="text-muted-foreground" />
                 </div>
               </button>
