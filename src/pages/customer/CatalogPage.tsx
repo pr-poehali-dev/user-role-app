@@ -90,7 +90,7 @@ export default function CustomerCatalogPage({ products, onSubmitOrder }: Props) 
         </div>
         <h2 className="text-xl font-semibold mb-2">Заявка отправлена!</h2>
         <p className="text-muted-foreground text-sm mb-6">
-          Супервайзер получил уведомление и приступит к работе
+          Миксолог получил уведомление и приступит к работе
         </p>
         <button
           onClick={() => {
@@ -176,7 +176,7 @@ export default function CustomerCatalogPage({ products, onSubmitOrder }: Props) 
                 : "bg-secondary text-muted-foreground cursor-not-allowed"
             )}
           >
-            Отправить заявку супервайзеру
+            Отправить заявку миксологу
           </button>
         </div>
       ) : (

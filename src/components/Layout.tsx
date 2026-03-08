@@ -47,7 +47,7 @@ export default function Layout({ role, currentView, onViewChange, onLogout, noti
         <div className="px-6 py-5 border-b border-border">
           <div className="text-sm font-semibold text-foreground">Миксология</div>
           <div className="text-xs text-muted-foreground mt-0.5">
-            {role === "assembler" ? "Супервайзер" : "Заявка"}
+            {role === "assembler" ? "Миксолог" : "Заявка перемещения"}
           </div>
         </div>
 

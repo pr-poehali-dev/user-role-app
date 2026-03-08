@@ -32,7 +32,7 @@ export default function ProfilePage({ role }: Props) {
         <div>
           <div className="font-semibold">{name}</div>
           <div className="text-xs text-muted-foreground mt-0.5">
-            {role === "assembler" ? "Супервайзер" : "Заявка"} · {company}
+            {role === "assembler" ? "Миксолог" : "Заявка перемещения"} · {company}
           </div>
         </div>
       </div>
