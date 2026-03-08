@@ -6,6 +6,13 @@
       "path": "/",
       "expectedStatus": 200,
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET categories list",
+      "method": "GET",
+      "path": "/?categories=1",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
     }
   ]
 }

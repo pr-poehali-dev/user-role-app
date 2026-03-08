@@ -5,26 +5,35 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   products: Product[];
-  onAdd: (name: string, volume: number) => void;
-  onUpdate: (id: string, name: string, volume: number) => void;
+  onAdd: (name: string, volume: number, category: string) => void;
+  onUpdate: (id: string, name: string, volume: number, category: string) => void;
   onDelete: (id: string) => void;
 }
 
 export default function CatalogPage({ products, onAdd, onUpdate, onDelete }: Props) {
   const [search, setSearch] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [volume, setVolume] = useState("");
+  const [category, setCategory] = useState("");
+  const [newCategory, setNewCategory] = useState("");
 
-  const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const categories = Array.from(new Set(products.map((p) => p.category).filter(Boolean))).sort();
+
+  const filtered = products.filter((p) => {
+    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
+    const matchCat = !filterCategory || p.category === filterCategory;
+    return matchSearch && matchCat;
+  });
 
   const openAdd = () => {
     setEditId(null);
     setName("");
     setVolume("");
+    setCategory("");
+    setNewCategory("");
     setShowForm(true);
   };
 
@@ -32,6 +41,8 @@ export default function CatalogPage({ products, onAdd, onUpdate, onDelete }: Pro
     setEditId(p.id);
     setName(p.name);
     setVolume(String(p.volume));
+    setCategory(p.category || "");
+    setNewCategory("");
     setShowForm(true);
   };
 
@@ -39,14 +50,17 @@ export default function CatalogPage({ products, onAdd, onUpdate, onDelete }: Pro
     if (!name.trim() || !volume) return;
     const vol = parseFloat(volume);
     if (isNaN(vol) || vol <= 0) return;
+    const cat = newCategory.trim() || category;
     if (editId) {
-      onUpdate(editId, name.trim(), vol);
+      onUpdate(editId, name.trim(), vol, cat);
     } else {
-      onAdd(name.trim(), vol);
+      onAdd(name.trim(), vol, cat);
     }
     setShowForm(false);
     setName("");
     setVolume("");
+    setCategory("");
+    setNewCategory("");
     setEditId(null);
   };
 
@@ -66,15 +80,29 @@ export default function CatalogPage({ products, onAdd, onUpdate, onDelete }: Pro
         </button>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-6">
-        <Icon name="Search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Поиск по названию..."
-          className="w-full pl-9 pr-4 py-2.5 bg-card border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-ring transition-all"
-        />
+      {/* Search + filter */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="relative flex-1">
+          <Icon name="Search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Поиск по названию..."
+            className="w-full pl-9 pr-4 py-2.5 bg-card border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-ring transition-all"
+          />
+        </div>
+        {categories.length > 0 && (
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="px-3 py-2.5 bg-card border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-ring min-w-[160px]"
+          >
+            <option value="">Все категории</option>
+            {categories.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* Form */}
@@ -102,6 +130,29 @@ export default function CatalogPage({ products, onAdd, onUpdate, onDelete }: Pro
                 placeholder="0.0"
                 className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-ring"
               />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-xs text-muted-foreground mb-1.5">Категория</label>
+              <div className="flex gap-2">
+                {categories.length > 0 && (
+                  <select
+                    value={category}
+                    onChange={(e) => { setCategory(e.target.value); setNewCategory(""); }}
+                    className="flex-1 px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="">Без категории</option>
+                    {categories.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                )}
+                <input
+                  value={newCategory}
+                  onChange={(e) => { setNewCategory(e.target.value); setCategory(""); }}
+                  placeholder={categories.length > 0 ? "Или введите новую..." : "Введите категорию..."}
+                  className="flex-1 px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+              </div>
             </div>
           </div>
           <div className="flex gap-2">
@@ -156,6 +207,16 @@ export default function CatalogPage({ products, onAdd, onUpdate, onDelete }: Pro
               </div>
               <div className="font-medium text-sm leading-tight mb-1">{product.name}</div>
               <div className="text-muted-foreground text-xs">{product.volume} л</div>
+              {product.category && (
+                <div className="mt-2">
+                  <span className={cn(
+                    "inline-block text-xs px-2 py-0.5 rounded-full",
+                    "bg-primary/10 text-primary font-medium"
+                  )}>
+                    {product.category}
+                  </span>
+                </div>
+              )}
             </div>
           ))}
         </div>

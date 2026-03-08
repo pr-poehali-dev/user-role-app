@@ -45,9 +45,9 @@ export default function Layout({ role, currentView, onViewChange, onLogout, noti
       <aside className="hidden md:flex flex-col w-56 bg-card border-r border-border shrink-0">
         {/* Logo */}
         <div className="px-6 py-5 border-b border-border">
-          <div className="text-sm font-semibold text-foreground">СборПро</div>
+          <div className="text-sm font-semibold text-foreground">Миксология</div>
           <div className="text-xs text-muted-foreground mt-0.5">
-            {role === "assembler" ? "Сборщик" : "Заказчик"}
+            {role === "assembler" ? "Супервайзер" : "Заявка"}
           </div>
         </div>
 
@@ -89,7 +89,7 @@ export default function Layout({ role, currentView, onViewChange, onLogout, noti
 
       {/* Mobile header */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-30 bg-card border-b border-border px-4 h-14 flex items-center justify-between">
-        <div className="text-sm font-semibold">СборПро</div>
+        <div className="text-sm font-semibold">Миксология</div>
         <div className="flex items-center gap-2">
           {notifications > 0 && (
             <span className="bg-orange-500 text-white text-xs rounded-full px-2 py-0.5">

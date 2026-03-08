@@ -40,13 +40,13 @@ export function useStore() {
     return () => clearInterval(interval);
   }, [loadAll]);
 
-  const addProduct = async (name: string, volume: number) => {
-    const product = await api.products.create(name, volume);
+  const addProduct = async (name: string, volume: number, category = "") => {
+    const product = await api.products.create(name, volume, "л", category);
     setProducts((prev) => [product, ...prev]);
   };
 
-  const updateProduct = async (id: string, name: string, volume: number) => {
-    const updated = await api.products.update(id, name, volume);
+  const updateProduct = async (id: string, name: string, volume: number, category = "") => {
+    const updated = await api.products.update(id, name, volume, "л", category);
     setProducts((prev) => prev.map((p) => (p.id === id ? updated : p)));
   };
 

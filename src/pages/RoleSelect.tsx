@@ -11,7 +11,7 @@ export default function RoleSelect({ onSelect }: Props) {
       <div className="animate-fade-in text-center mb-12">
         <div className="inline-flex items-center gap-2 mb-6 text-muted-foreground text-sm tracking-widest uppercase">
           <span className="w-8 h-px bg-border inline-block" />
-          СборПро
+          Миксология
           <span className="w-8 h-px bg-border inline-block" />
         </div>
         <h1 className="text-4xl font-semibold text-foreground mb-3 leading-tight">
@@ -30,7 +30,7 @@ export default function RoleSelect({ onSelect }: Props) {
           <div className="w-10 h-10 bg-primary-foreground/10 rounded-lg flex items-center justify-center mb-5">
             <Icon name="Package" size={20} className="text-primary-foreground" />
           </div>
-          <div className="text-xl font-semibold mb-1">Сборщик</div>
+          <div className="text-xl font-semibold mb-1">Супервайзер</div>
           <div className="text-primary-foreground/60 text-sm leading-relaxed">
             Управление базой товаров и обработка заявок
           </div>
@@ -43,7 +43,7 @@ export default function RoleSelect({ onSelect }: Props) {
           <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center mb-5">
             <Icon name="ShoppingCart" size={20} className="text-foreground" />
           </div>
-          <div className="text-xl font-semibold mb-1">Заказчик</div>
+          <div className="text-xl font-semibold mb-1">Заявка</div>
           <div className="text-muted-foreground text-sm leading-relaxed">
             Выбор товаров и оформление заявок
           </div>

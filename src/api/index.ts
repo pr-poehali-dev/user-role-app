@@ -19,15 +19,16 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 export const api = {
   products: {
     list: () => request<Product[]>(PRODUCTS_URL),
-    create: (name: string, volume: number, unit = "л") =>
+    categories: () => request<string[]>(`${PRODUCTS_URL}?categories=1`),
+    create: (name: string, volume: number, unit = "л", category = "") =>
       request<Product>(PRODUCTS_URL, {
         method: "POST",
-        body: JSON.stringify({ name, volume, unit }),
+        body: JSON.stringify({ name, volume, unit, category }),
       }),
-    update: (id: string, name: string, volume: number, unit = "л") =>
+    update: (id: string, name: string, volume: number, unit = "л", category = "") =>
       request<Product>(`${PRODUCTS_URL}?id=${id}`, {
         method: "PUT",
-        body: JSON.stringify({ name, volume, unit }),
+        body: JSON.stringify({ name, volume, unit, category }),
       }),
     remove: (id: string) =>
       request<{ ok: boolean }>(`${PRODUCTS_URL}?id=${id}`, { method: "DELETE" }),

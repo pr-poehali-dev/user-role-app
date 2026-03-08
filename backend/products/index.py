@@ -1,8 +1,9 @@
 """
 API для управления каталогом товаров (CRUD).
 GET /  — список активных товаров
-POST / — создать {name, volume, unit}
-PUT /  — обновить ?id=N {name, volume, unit}
+GET /?categories=1 — список уникальных категорий
+POST / — создать {name, volume, unit, category}
+PUT /  — обновить ?id=N {name, volume, unit, category}
 DELETE / — мягкое удаление ?id=N (is_active=false)
 """
 import json
@@ -27,7 +28,7 @@ def err(msg, status=400):
     return {"statusCode": status, "headers": CORS, "body": json.dumps({"error": msg})}
 
 def row_to_product(r):
-    return {"id": str(r[0]), "name": r[1], "volume": float(r[2]), "unit": r[3], "createdAt": r[4].isoformat()}
+    return {"id": str(r[0]), "name": r[1], "volume": float(r[2]), "unit": r[3], "createdAt": r[4].isoformat(), "category": r[5] or ""}
 
 def handler(event: dict, context) -> dict:
     if event.get("httpMethod") == "OPTIONS":
@@ -42,8 +43,13 @@ def handler(event: dict, context) -> dict:
 
     try:
         if method == "GET":
+            if params.get("categories"):
+                cur.execute(
+                    f"SELECT DISTINCT category FROM {SCHEMA}.products WHERE is_active = TRUE AND category != '' ORDER BY category"
+                )
+                return ok([r[0] for r in cur.fetchall()])
             cur.execute(
-                f"SELECT id, name, volume, unit, created_at FROM {SCHEMA}.products WHERE is_active = TRUE ORDER BY created_at DESC"
+                f"SELECT id, name, volume, unit, created_at, category FROM {SCHEMA}.products WHERE is_active = TRUE ORDER BY created_at DESC"
             )
             return ok([row_to_product(r) for r in cur.fetchall()])
 
@@ -51,11 +57,12 @@ def handler(event: dict, context) -> dict:
             name = str(body.get("name", "")).strip()
             volume = float(body.get("volume", 0))
             unit = str(body.get("unit", "л"))
+            category = str(body.get("category", "")).strip()
             if not name or volume <= 0:
                 return err("Укажите название и объём")
             cur.execute(
-                f"INSERT INTO {SCHEMA}.products (name, volume, unit) VALUES (%s, %s, %s) RETURNING id, name, volume, unit, created_at",
-                (name, volume, unit)
+                f"INSERT INTO {SCHEMA}.products (name, volume, unit, category) VALUES (%s, %s, %s, %s) RETURNING id, name, volume, unit, created_at, category",
+                (name, volume, unit, category)
             )
             r = cur.fetchone()
             conn.commit()
@@ -66,11 +73,12 @@ def handler(event: dict, context) -> dict:
             name = str(body.get("name", "")).strip()
             volume = float(body.get("volume", 0))
             unit = str(body.get("unit", "л"))
+            category = str(body.get("category", "")).strip()
             if not pid or not name or volume <= 0:
                 return err("Неверные данные")
             cur.execute(
-                f"UPDATE {SCHEMA}.products SET name=%s, volume=%s, unit=%s WHERE id=%s AND is_active=TRUE RETURNING id, name, volume, unit, created_at",
-                (name, volume, unit, int(pid))
+                f"UPDATE {SCHEMA}.products SET name=%s, volume=%s, unit=%s, category=%s WHERE id=%s AND is_active=TRUE RETURNING id, name, volume, unit, created_at, category",
+                (name, volume, unit, category, int(pid))
             )
             r = cur.fetchone()
             conn.commit()

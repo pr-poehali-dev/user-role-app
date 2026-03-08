@@ -8,25 +8,66 @@ interface Props {
   onSubmitOrder: (customerName: string, items: OrderItem[], comment: string) => Promise<void> | void;
 }
 
+function parseFraction(val: string): number {
+  val = val.trim();
+  if (val.includes("/")) {
+    const [a, b] = val.split("/").map(Number);
+    if (b && !isNaN(a) && !isNaN(b)) return a / b;
+  }
+  const n = parseFloat(val);
+  return isNaN(n) ? 0 : n;
+}
+
+function formatQty(val: number): string {
+  if (val === 0) return "0";
+  const fracs: [number, string][] = [[1/4,"¼"],[1/3,"⅓"],[1/2,"½"],[2/3,"⅔"],[3/4,"¾"]];
+  for (const [frac, sym] of fracs) {
+    if (Math.abs(val - frac) < 0.01) return sym;
+    const whole = Math.floor(val);
+    if (whole > 0 && Math.abs(val - whole - frac) < 0.01) return `${whole}${sym}`;
+  }
+  return val % 1 === 0 ? String(val) : val.toFixed(2).replace(/\.?0+$/, "");
+}
+
 export default function CustomerCatalogPage({ products, onSubmitOrder }: Props) {
   const [search, setSearch] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
   const [cart, setCart] = useState<Record<string, number>>({});
+  const [qtyInput, setQtyInput] = useState<Record<string, string>>({});
   const [customerName, setCustomerName] = useState("");
   const [comment, setComment] = useState("");
   const [step, setStep] = useState<"browse" | "checkout" | "success">("browse");
 
-  const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const categories = Array.from(new Set(products.map((p) => p.category).filter(Boolean))).sort();
 
-  const cartCount = Object.values(cart).reduce((s, v) => s + v, 0);
+  const filtered = products.filter((p) => {
+    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
+    const matchCat = !filterCategory || p.category === filterCategory;
+    return matchSearch && matchCat;
+  });
+
+  const cartCount = Object.values(cart).reduce((s, v) => s + (v > 0 ? 1 : 0), 0);
   const cartItems = products
     .filter((p) => cart[p.id] > 0)
     .map((p) => ({ ...p, qty: cart[p.id] }));
 
   const setQty = (id: string, qty: number) => {
-    setCart((prev) => ({ ...prev, [id]: Math.max(0, qty) }));
+    const safe = Math.max(0, Math.round(qty * 100) / 100);
+    setCart((prev) => ({ ...prev, [id]: safe }));
+    setQtyInput((prev) => ({ ...prev, [id]: formatQty(safe) }));
   };
+
+  const handleQtyInput = (id: string, val: string) => {
+    setQtyInput((prev) => ({ ...prev, [id]: val }));
+  };
+
+  const handleQtyBlur = (id: string) => {
+    const val = parseFraction(qtyInput[id] || "0");
+    setQty(id, val);
+  };
+
+  const increment = (id: string) => setQty(id, (cart[id] || 0) + 1);
+  const decrement = (id: string) => setQty(id, (cart[id] || 0) - 0.5);
 
   const handleOrder = async () => {
     if (!customerName.trim() || cartItems.length === 0) return;
@@ -49,11 +90,12 @@ export default function CustomerCatalogPage({ products, onSubmitOrder }: Props) 
         </div>
         <h2 className="text-xl font-semibold mb-2">Заявка отправлена!</h2>
         <p className="text-muted-foreground text-sm mb-6">
-          Сборщик получил уведомление и приступит к работе
+          Супервайзер получил уведомление и приступит к работе
         </p>
         <button
           onClick={() => {
             setCart({});
+            setQtyInput({});
             setCustomerName("");
             setComment("");
             setStep("browse");
@@ -101,7 +143,7 @@ export default function CustomerCatalogPage({ products, onSubmitOrder }: Props) 
                 <div key={item.id} className="flex justify-between items-center py-2 border-b border-border/50 last:border-0 text-sm">
                   <span>{item.name}</span>
                   <div className="text-muted-foreground">
-                    {item.volume} л × <span className="text-foreground font-medium">{item.qty} шт</span>
+                    {item.volume} л × <span className="text-foreground font-medium">{formatQty(item.qty)} шт</span>
                   </div>
                 </div>
               ))}
@@ -134,19 +176,34 @@ export default function CustomerCatalogPage({ products, onSubmitOrder }: Props) 
                 : "bg-secondary text-muted-foreground cursor-not-allowed"
             )}
           >
-            Отправить заявку сборщику
+            Отправить заявку супервайзеру
           </button>
         </div>
       ) : (
         <>
-          <div className="relative mb-6">
-            <Icon name="Search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Поиск по названию..."
-              className="w-full pl-9 pr-4 py-2.5 bg-card border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-            />
+          {/* Search + category filter */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+            <div className="relative flex-1">
+              <Icon name="Search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Поиск по названию..."
+                className="w-full pl-9 pr-4 py-2.5 bg-card border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+            {categories.length > 0 && (
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="px-3 py-2.5 bg-card border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-ring min-w-[160px]"
+              >
+                <option value="">Все категории</option>
+                {categories.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -156,29 +213,38 @@ export default function CustomerCatalogPage({ products, onSubmitOrder }: Props) 
                 className="bg-card border border-border rounded-xl p-4 transition-all duration-200 hover:border-primary/20 hover:shadow-sm"
                 style={{ animationDelay: `${i * 40}ms` }}
               >
-                <div className="flex items-start gap-3 mb-4">
+                <div className="flex items-start gap-3 mb-3">
                   <div className="w-8 h-8 bg-secondary rounded-lg flex items-center justify-center shrink-0">
                     <Icon name="Droplets" size={14} className="text-muted-foreground" />
                   </div>
                   <div className="min-w-0">
                     <div className="font-medium text-sm leading-tight">{product.name}</div>
                     <div className="text-xs text-muted-foreground mt-0.5">{product.volume} л</div>
+                    {product.category && (
+                      <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium mt-1">
+                        {product.category}
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                {/* Qty control */}
+                {/* Qty control with fraction support */}
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setQty(product.id, (cart[product.id] || 0) - 1)}
+                    onClick={() => decrement(product.id)}
                     className="w-8 h-8 rounded-md border border-border flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors"
                   >
                     <Icon name="Minus" size={13} />
                   </button>
-                  <span className="flex-1 text-center text-sm font-medium">
-                    {cart[product.id] || 0}
-                  </span>
+                  <input
+                    value={qtyInput[product.id] ?? formatQty(cart[product.id] || 0)}
+                    onChange={(e) => handleQtyInput(product.id, e.target.value)}
+                    onBlur={() => handleQtyBlur(product.id)}
+                    className="flex-1 text-center text-sm font-medium bg-transparent border border-border rounded-md py-1 focus:outline-none focus:ring-1 focus:ring-ring"
+                    placeholder="0"
+                  />
                   <button
-                    onClick={() => setQty(product.id, (cart[product.id] || 0) + 1)}
+                    onClick={() => increment(product.id)}
                     className="w-8 h-8 rounded-md bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
                   >
                     <Icon name="Plus" size={13} />
